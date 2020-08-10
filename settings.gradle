@@ -1,0 +1,3 @@
+include ':AndVideoTrimmer'
+include ':app'
+rootProject.name = "AndVideoTrimmerDemo"
