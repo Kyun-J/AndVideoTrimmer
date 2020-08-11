@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/LView"
     android:layout_gravity="bottom"
-    android:layout_marginBottom="60dp"
     android:clickable="true"
     android:focusable="true"
     android:gravity="center_vertical"
@@ -14,35 +13,33 @@
         android:id="@+id/range_seek_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
+        android:elevation="4dp"
+        android:padding="4dp"
         app:bar_color="@android:color/transparent"
         app:bar_highlight_color="@android:color/transparent"
         app:data_type="_integer"
-        android:elevation="4dp"
-        android:layout_marginStart="25dp"
-        android:layout_marginEnd="25dp"
-        android:layout_alignParentTop="true"
-        android:padding="4dp"
         app:left_thumb_image="@drawable/ic_min_seek"
-        app:right_thumb_image="@drawable/ic_max_seek"
-        />
+        app:right_thumb_image="@drawable/ic_max_seek" />
 
     <com.crystal.crystalrangeseekbar.widgets.CrystalSeekbar
+        android:id="@+id/seekbar_controller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
-        app:bar_color="@android:color/transparent"
-        app:bar_highlight_color="@android:color/transparent"
-        app:left_thumb_image="@drawable/ic_vertical_line"
-        android:id="@+id/seekbar_controller"
         android:elevation="4dp"
         android:padding="8dp"
-        />
+        app:bar_color="@android:color/transparent"
+        app:bar_highlight_color="@android:color/transparent"
+        app:left_thumb_image="@drawable/ic_vertical_line" />
 
     <LinearLayout
-        style="@style/LView"
         android:id="@+id/view_image"
+        style="@style/LView"
         android:layout_alignParentTop="true"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp">
@@ -69,7 +66,7 @@
 
         <ImageView
             android:id="@+id/image_six"
-            style="@style/ImageTrim"/>
+            style="@style/ImageTrim" />
 
         <ImageView
             android:id="@+id/image_seven"

@@ -12,6 +12,8 @@ object TrimmerConstants {
     const val DESTINATION = "destination"
     const val HIDE_PLAYER_SEEKBAR = "hide_player_seekbar"
 
+
+
     var REQ_CODE_VIDEO_TRIMMER = 324
 
 }

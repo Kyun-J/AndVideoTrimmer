@@ -11,7 +11,6 @@ import android.graphics.PorterDuffColorFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -80,7 +79,7 @@ open class ActVideoTrimmer: AppCompatActivity() {
 
     private var trimType = 0
     private var fixedGap: Long = 0
-    private var minGap:Long = 0
+    private var minGap:Long = 2000
     private var minFromGap:Long = 0
     private var maxToGap:Long = 0
 
@@ -168,6 +167,7 @@ open class ActVideoTrimmer: AppCompatActivity() {
 
     private fun buildMediaSource(mUri: Uri?) {
         try {
+            SCOPE.launch(Dispatchers.Main) { showLoadingDialog() }
             val bandwidthMeter = DefaultBandwidthMeter()
             val dataSourceFactory: DataSource.Factory =
                 DefaultDataSourceFactory(
@@ -269,7 +269,7 @@ open class ActVideoTrimmer: AppCompatActivity() {
                         lastMaxValue = maxToGap
                     }
                     else -> {
-                        range_seek_bar.setGap(2000f).apply()
+                        range_seek_bar.setGap(minGap.toFloat())
                         lastMaxValue = totalDuration
                     }
                 }
@@ -295,6 +295,7 @@ open class ActVideoTrimmer: AppCompatActivity() {
                         if (videoPlayer.playWhenReady) seekTo(lastMinValue)
                     }
                 }
+                alertDialog?.dismiss()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -318,7 +319,6 @@ open class ActVideoTrimmer: AppCompatActivity() {
     }
 
     private fun seekTo(sec: Long) {
-//        videoPlayer.seekTo(sec * 1000)
         videoPlayer.seekTo(sec)
     }
 
@@ -395,7 +395,7 @@ open class ActVideoTrimmer: AppCompatActivity() {
     private fun validateVideo() {
         if (isValidVideo) {
             SCOPE.launch {
-                val path = if(destinationPath != null) destinationPath else Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString()
+                val path = if(destinationPath != null) destinationPath else getExternalFilesDir(null)!!.absolutePath
 //                val newFile = File("$path${File.separator}${System.currentTimeMillis()}.${TrimmerUtils.getFileExtension(this@ActVideoTrimmer, uri)}")
                 val newFile = File("$path${File.separator}${System.currentTimeMillis()}.mp4")
                 val outputPath = newFile.toString()
@@ -409,7 +409,7 @@ open class ActVideoTrimmer: AppCompatActivity() {
                     outputPath
                 )
                 videoPlayer.playWhenReady = false
-                SCOPE.launch(Dispatchers.Main) { showProcessingDialog { FFmpeg.cancel() } }
+                SCOPE.launch(Dispatchers.Main) { showTrimmingDialog { FFmpeg.cancel() } }
                 val rc = FFmpeg.execute(complexCommand)
                 SCOPE.launch(Dispatchers.Main) {
                     if (rc == RETURN_CODE_SUCCESS) {
@@ -419,10 +419,8 @@ open class ActVideoTrimmer: AppCompatActivity() {
                         setResult(Activity.RESULT_OK, intent)
                         finish()
                     } else {
-                        TrimmerLog.v("onFailure")
-                        alertDialog?.let { dialog ->
-                            if (dialog.isShowing) dialog.dismiss()
-                        }
+                        TrimmerLog.e("onFailure")
+                        alertDialog?.dismiss()
                         Toast.makeText(
                             this@ActVideoTrimmer,
                             "Failed to trim",
@@ -431,14 +429,15 @@ open class ActVideoTrimmer: AppCompatActivity() {
                     }
                 }
             }
-        } else Toast.makeText(
-            this,
-            "${getString(R.string.txt_smaller)} ${TrimmerUtils.getLimitedTimeFormatted(maxToGap)}",
-            Toast.LENGTH_SHORT
-        ).show()
+        } else
+            Toast.makeText(
+                this,
+                "${getString(R.string.txt_smaller)} ${TrimmerUtils.getLimitedTimeFormatted(maxToGap)}",
+                Toast.LENGTH_SHORT
+            ).show()
     }
 
-    private fun showProcessingDialog(cancelEvent: () -> Unit) {
+    private fun showTrimmingDialog(cancelEvent: () -> Unit) {
         try {
             val dialogBuilder = AlertDialog.Builder(this)
             val inflater = this.layoutInflater
@@ -451,6 +450,18 @@ open class ActVideoTrimmer: AppCompatActivity() {
                 alertDialog?.dismiss()
                 cancelEvent()
             }
+            alertDialog?.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun showLoadingDialog() {
+        try {
+            val dialogBuilder = AlertDialog.Builder(this)
+            dialogBuilder.setView(R.layout.alert_loading)
+            alertDialog = dialogBuilder.create()
+            alertDialog?.setCancelable(false)
             alertDialog?.show()
         } catch (e: Exception) {
             e.printStackTrace()

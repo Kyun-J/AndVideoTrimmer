@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,63 +7,82 @@
     android:background="#303030"
     tools:ignore="ContentDescription">
 
-    <LinearLayout
-        style="@style/FView">
 
-        <androidx.appcompat.widget.Toolbar
-            android:layout_width="match_parent"
-            android:id="@+id/toolbar"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            android:background="#212121"
-            android:layout_height="?attr/actionBarSize"/>
 
-        <RelativeLayout
-            style="@style/VWView">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?actionBarSize"
+        android:background="#212121"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-        <com.google.android.exoplayer2.ui.SimpleExoPlayerView
-            android:id="@+id/player_view_lib"
-            style="@style/FView"
-            app:use_controller="false"
-            android:layout_gravity="center_vertical"/>
+    <com.google.android.exoplayer2.ui.SimpleExoPlayerView
+        android:id="@+id/player_view_lib"
+        style="@style/FView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_anchorGravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintBottom_toTopOf="@+id/include"
+        app:use_controller="false" />
 
-            <ImageView
-                style="@style/WView"
-                android:src="@drawable/ic_video_play_lib"
-                android:padding="12dp"
-                android:layout_centerInParent="true"
-                android:background="@drawable/shape_circle_lib"
-                android:id="@+id/image_play_pause"
-                />
-
-        </RelativeLayout>
-    </LinearLayout>
-
+    <ImageView
+        android:id="@+id/image_play_pause"
+        style="@style/WView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/shape_circle_lib"
+        android:padding="12dp"
+        android:src="@drawable/ic_video_play_lib"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintBottom_toTopOf="@+id/include"/>
 
 
     <include
-        layout="@layout/view_video_controller"/>
+        android:id="@+id/include"
+        layout="@layout/view_video_controller"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_gap"
+        />
 
     <TextView
         style="@style/TxtRgStyle22"
-        android:layout_gravity="bottom"
-        android:layout_marginStart="10dp"
-        android:layout_marginBottom="40dp"
         android:textSize="14sp"
         android:visibility="gone"
         android:textColor="#80FFFFFF"
         android:id="@+id/txt_start_duration"
-        />
+        android:layout_marginStart="15dp"
+        app:layout_constraintTop_toBottomOf="@+id/include"
+        app:layout_constraintStart_toStartOf="parent"/>
 
 
     <TextView
         style="@style/TxtRgStyle22"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="10dp"
         android:textSize="14sp"
         android:visibility="gone"
         android:textColor="#80FFFFFF"
         android:id="@+id/txt_end_duration"
-        android:layout_marginBottom="40dp"
-        />
+        android:layout_marginEnd="15dp"
+        app:layout_constraintTop_toBottomOf="@+id/include"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <View
+        android:id="@+id/bottom_gap"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

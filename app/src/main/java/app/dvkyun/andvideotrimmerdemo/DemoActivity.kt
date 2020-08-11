@@ -47,6 +47,9 @@ class DemoActivity: AppCompatActivity() {
         if(requestCode == GALLERY_PICK && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
             val intent = Intent(this, ActVideoTrimmer::class.java)
             intent.putExtra(TrimmerConstants.TRIM_VIDEO_URI, data.data!!.toString())
+            intent.putExtra(TrimmerConstants.TRIM_TYPE, 3)
+            intent.putExtra(TrimmerConstants.MIN_FROM_DURATION, 5000L)
+            intent.putExtra(TrimmerConstants.MAX_TO_DURATION, 10000L)
             intent.putExtra(
                 TrimmerConstants.DESTINATION,
                 "/storage/emulated/0/DCIM/Camera"
