@@ -11,9 +11,4 @@ object TrimmerConstants {
     const val MAX_TO_DURATION = "max_to_duration"
     const val DESTINATION = "destination"
     const val HIDE_PLAYER_SEEKBAR = "hide_player_seekbar"
-
-
-
-    var REQ_CODE_VIDEO_TRIMMER = 324
-
 }

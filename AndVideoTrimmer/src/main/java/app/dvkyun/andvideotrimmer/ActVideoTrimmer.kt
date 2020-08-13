@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.arthenica.mobileffmpeg.Config.RETURN_CODE_CANCEL
 import com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS
 import com.arthenica.mobileffmpeg.FFmpeg
 import com.google.android.exoplayer2.ExoPlayerFactory
@@ -39,6 +40,7 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import kotlinx.android.synthetic.main.act_video_trimmer.*
+import kotlinx.android.synthetic.main.alert_convert.view.*
 import kotlinx.android.synthetic.main.view_video_controller.*
 import kotlinx.coroutines.*
 import java.io.File
@@ -227,15 +229,9 @@ open class ActVideoTrimmer: AppCompatActivity() {
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     private fun setImageBitmaps() {
         try {
             SCOPE.launch(Dispatchers.Main) {
-                txt_start_duration.visibility = View.VISIBLE
-                txt_end_duration.visibility = View.VISIBLE
-                txt_start_duration.text = TrimmerUtils.formatSeconds(0)
-                txt_end_duration.text = TrimmerUtils.formatSeconds(totalDuration / 1000)
-
                 val diff = totalDuration / 8
                 var index = 1
                 for (img in imageViews) {
@@ -249,7 +245,13 @@ open class ActVideoTrimmer: AppCompatActivity() {
                     img.setImageBitmap(bitmap)
                     index++
                 }
+                view_image.visibility = View.VISIBLE
                 range_seek_bar.visibility = View.VISIBLE
+                seekbar_controller.visibility = View.VISIBLE
+                txt_start_duration.visibility = View.VISIBLE
+                txt_end_duration.visibility = View.VISIBLE
+                txt_start_duration.text = TrimmerUtils.formatMSeconds(0)
+                txt_end_duration.text = TrimmerUtils.formatMSeconds(totalDuration)
                 seekbar_controller.setMaxValue(totalDuration.toFloat()).apply()
                 range_seek_bar.setMaxValue(totalDuration.toFloat()).apply()
                 range_seek_bar.setMaxStartValue(totalDuration.toFloat()).apply()
@@ -280,8 +282,8 @@ open class ActVideoTrimmer: AppCompatActivity() {
                     if (lastMinValue != minVal) seekTo(minValue)
                     lastMinValue = minVal
                     lastMaxValue = maxVal
-                    txt_start_duration.text = TrimmerUtils.formatSeconds(minVal / 1000)
-                    txt_end_duration.text = TrimmerUtils.formatSeconds(maxVal / 1000)
+                    txt_start_duration.text = TrimmerUtils.formatMSeconds(minVal)
+                    txt_end_duration.text = TrimmerUtils.formatMSeconds(maxVal)
                     if (trimType == 3) setDoneColor(minVal, maxVal)
                 }
                 seekbar_controller.setOnSeekbarFinalValueListener { value ->
@@ -409,23 +411,33 @@ open class ActVideoTrimmer: AppCompatActivity() {
                     outputPath
                 )
                 videoPlayer.playWhenReady = false
-                SCOPE.launch(Dispatchers.Main) { showTrimmingDialog { FFmpeg.cancel() } }
+                withContext(Dispatchers.Main) { showTrimmingDialog { FFmpeg.cancel() } }
                 val rc = FFmpeg.execute(complexCommand)
                 SCOPE.launch(Dispatchers.Main) {
-                    if (rc == RETURN_CODE_SUCCESS) {
-                        alertDialog?.dismiss()
-                        val intent = Intent()
-                        intent.putExtra(TrimmerConstants.TRIMMED_VIDEO_PATH, outputPath)
-                        setResult(Activity.RESULT_OK, intent)
-                        finish()
-                    } else {
-                        TrimmerLog.e("onFailure")
-                        alertDialog?.dismiss()
-                        Toast.makeText(
-                            this@ActVideoTrimmer,
-                            "Failed to trim",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    alertDialog?.dismiss()
+                    when(rc) {
+                        RETURN_CODE_SUCCESS -> {
+                            val intent = Intent()
+                            intent.putExtra(TrimmerConstants.TRIMMED_VIDEO_PATH, outputPath)
+                            setResult(Activity.RESULT_OK, intent)
+                            finish()
+                        }
+                        RETURN_CODE_CANCEL -> {
+                            TrimmerLog.e("Cancel by user")
+                            Toast.makeText(
+                                this@ActVideoTrimmer,
+                                "Trimming canceled by user",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        else -> {
+                            TrimmerLog.e("FFmpeg ERR Code -> $rc")
+                            Toast.makeText(
+                                this@ActVideoTrimmer,
+                                "Trimming Err",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 }
             }
@@ -440,16 +452,14 @@ open class ActVideoTrimmer: AppCompatActivity() {
     private fun showTrimmingDialog(cancelEvent: () -> Unit) {
         try {
             val dialogBuilder = AlertDialog.Builder(this)
-            val inflater = this.layoutInflater
-            val dialogView = inflater.inflate(R.layout.alert_convert, null)
-            val txtCancel = dialogView.findViewById<TextView>(R.id.txt_cancel)
-            dialogBuilder.setView(R.layout.alert_convert)
-            alertDialog = dialogBuilder.create()
-            alertDialog?.setCancelable(false)
-            txtCancel.setOnClickListener {
+            val dialogView = this.layoutInflater.inflate(R.layout.alert_convert, null)
+            dialogView.txt_cancel.setOnClickListener {
                 alertDialog?.dismiss()
                 cancelEvent()
             }
+            dialogBuilder.setView(dialogView)
+            dialogBuilder.setCancelable(false)
+            alertDialog = dialogBuilder.create()
             alertDialog?.show()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -460,8 +470,8 @@ open class ActVideoTrimmer: AppCompatActivity() {
         try {
             val dialogBuilder = AlertDialog.Builder(this)
             dialogBuilder.setView(R.layout.alert_loading)
+            dialogBuilder.setCancelable(false)
             alertDialog = dialogBuilder.create()
-            alertDialog?.setCancelable(false)
             alertDialog?.show()
         } catch (e: Exception) {
             e.printStackTrace()

@@ -18,6 +18,7 @@
         android:layout_marginEnd="25dp"
         android:elevation="4dp"
         android:padding="4dp"
+        android:visibility="invisible"
         app:bar_color="@android:color/transparent"
         app:bar_highlight_color="@android:color/transparent"
         app:data_type="_integer"
@@ -33,6 +34,7 @@
         android:layout_marginEnd="30dp"
         android:elevation="4dp"
         android:padding="8dp"
+        android:visibility="invisible"
         app:bar_color="@android:color/transparent"
         app:bar_highlight_color="@android:color/transparent"
         app:left_thumb_image="@drawable/ic_vertical_line" />
@@ -40,6 +42,7 @@
     <LinearLayout
         android:id="@+id/view_image"
         style="@style/LView"
+        android:visibility="invisible"
         android:layout_alignParentTop="true"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp">

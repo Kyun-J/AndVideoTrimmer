@@ -37,7 +37,6 @@ internal object TrimmerUtils {
             val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val timeInMillisec = time!!.toLong()
             retriever.release()
-//            return timeInMillisec / 1000
             return timeInMillisec
         } catch (e: Exception) {
             e.printStackTrace()
@@ -100,9 +99,29 @@ internal object TrimmerUtils {
         return formattedTime
     }
 
-    fun getLimitedTimeFormatted(msecs: Long): String? {
-        val hours = msecs / 3600000
-        val secondsLeft = msecs - hours * 3600000
+    fun formatMSeconds(timeInMSeconds: Long): String? {
+        val hours = timeInMSeconds / 3600000
+        val secondsLeft = timeInMSeconds - hours * 3600000
+        val minutes = secondsLeft / 60000
+        val seconds = secondsLeft - minutes * 60000
+        val vSeconds = seconds / 1000
+        val mSeconds = seconds % 1000
+        var formattedTime = ""
+        if (hours < 10 && hours != 0L) {
+            formattedTime += "0"
+            formattedTime += "$hours:"
+        }
+        if (minutes < 10) formattedTime += "0"
+        formattedTime += "$minutes:"
+        if (vSeconds < 10) formattedTime += "0"
+        formattedTime += "$vSeconds."
+        formattedTime += mSeconds
+        return formattedTime
+    }
+
+    fun getLimitedTimeFormatted(mses: Long): String? {
+        val hours = mses / 3600000
+        val secondsLeft = mses - hours * 3600000
         val minutes = secondsLeft / 60000
         val seconds = (secondsLeft - minutes * 60000) / 1000
         val time: String

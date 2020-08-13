@@ -18,12 +18,11 @@ import java.io.FileOutputStream
 internal object FileUtils {
     @SuppressLint("NewApi")
     fun getPath(context: Context, uri: Uri): String? {
-        var selection: String? = null
-        var selectionArgs: Array<String>? = null
+        val selection: String?
+        val selectionArgs: Array<String>?
         if (isExternalStorageDocument(uri)) {
             val docId = DocumentsContract.getDocumentId(uri)
             val split = docId.split(":".toRegex()).toTypedArray()
-            val type = split[0]
             val fullPath = getPathFromExtSD(split)
             return if (fullPath !== "") {
                 fullPath
@@ -33,8 +32,8 @@ internal object FileUtils {
         }
         if (isDownloadsDocument(uri)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val id: String
                 var cursor: Cursor? = null
+                val id = DocumentsContract.getDocumentId(uri)
                 try {
                     cursor = context.contentResolver.query(
                         uri,
@@ -55,7 +54,6 @@ internal object FileUtils {
                 } finally {
                     cursor?.close()
                 }
-                id = DocumentsContract.getDocumentId(uri)
                 if (!TextUtils.isEmpty(id)) {
                     if (id.startsWith("raw:")) {
                         return id.replaceFirst("raw:".toRegex(), "")
@@ -153,7 +151,7 @@ internal object FileUtils {
     private fun getPathFromExtSD(pathData: Array<String>): String {
         val type = pathData[0]
         val relativePath = "/" + pathData[1]
-        var fullPath = ""
+        var fullPath: String
         if ("primary".equals(type, ignoreCase = true)) {
             fullPath =
                 Environment.getExternalStorageDirectory().toString() + relativePath
@@ -166,11 +164,11 @@ internal object FileUtils {
         //
         // instead, for each possible path, check if file exists
         // we'll start with secondary storage as this could be our (physically) removable sd card
-        fullPath = System.getenv("SECONDARY_STORAGE") + relativePath
+        fullPath = "${System.getenv("SECONDARY_STORAGE")}$relativePath"
         if (fileExists(fullPath)) {
             return fullPath
         }
-        fullPath = System.getenv("EXTERNAL_STORAGE") + relativePath
+        fullPath = "${System.getenv("EXTERNAL_STORAGE")}$relativePath"
         return if (fileExists(fullPath)) {
             fullPath
         } else fullPath
@@ -188,16 +186,15 @@ internal object FileUtils {
          *     * and display it.
          * */
         val nameIndex = returnCursor!!.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-        val sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE)
         returnCursor.moveToFirst()
         val name = returnCursor.getString(nameIndex)
-        val size = java.lang.Long.toString(returnCursor.getLong(sizeIndex))
+        returnCursor.close()
         val file = File(context.cacheDir, name)
         try {
             val inputStream =
                 context.contentResolver.openInputStream(uri)
             val outputStream = FileOutputStream(file)
-            var read = 0
+            var read: Int
             val maxBufferSize = 1 * 1024 * 1024
             val bytesAvailable = inputStream!!.available()
 
@@ -242,10 +239,8 @@ internal object FileUtils {
          *     * and display it.
          * */
         val nameIndex = returnCursor!!.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-        val sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE)
         returnCursor.moveToFirst()
         val name = returnCursor.getString(nameIndex)
-        val size = java.lang.Long.toString(returnCursor.getLong(sizeIndex))
         val output: File
         output = if (newDirName != "") {
             val dir =
@@ -257,11 +252,12 @@ internal object FileUtils {
         } else {
             File(context.filesDir.toString() + "/" + name)
         }
+        returnCursor.close()
         try {
             val inputStream =
                 context.contentResolver.openInputStream(uri)
             val outputStream = FileOutputStream(output)
-            var read = 0
+            var read: Int
             val bufferSize = 1024
             val buffers = ByteArray(bufferSize)
             while (inputStream!!.read(buffers).also { read = it } != -1) {
